@@ -4,146 +4,136 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Steezys Proxy Trades</title>
-    <!-- STABLE TAILWIND PRODUCTION CDN FIXED BELOW -->
-    <script src="https://jsdelivr.net"></script>
+    <!-- REMOVED BROKEN TAILWIND LOGIC - EMBEDDING IMMUTABLE STYLESHEET SNAPSHOT -->
+    <link rel="stylesheet" href="style.css">
     <script src="https://jsdelivr.net"></script>
     <script src="https://cloudflare.com"></script>
-    <style>
-        @keyframes fadeInOut {
-            0%, 100% { opacity: 0; transform: translateY(3px); }
-            10%, 90% { opacity: 1; transform: translateY(0); }
-        }
-        .ticker-fade { animation: fadeInOut 5s infinite ease-in-out; }
-        .glass-panel { background: rgba(15, 23, 42, 0.65); backdrop-filter: blur(12px); }
-    </style>
 </head>
-<body class="bg-[#090d16] text-slate-200 min-h-screen font-sans selection:bg-indigo-500 selection:text-white">
+<body>
 
     <!-- Navbar -->
-    <header class="bg-[#0f1524]/90 border-b border-slate-800/80 px-6 py-4 flex justify-between items-center shadow-2xl sticky top-0 z-40 backdrop-blur">
-        <h1 class="text-xl font-black tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-500">PROXY PLUG TRADES</h1>
-        <div class="flex items-center gap-4">
-            <select id="roleView" onchange="toggleRoleView()" class="bg-[#182235] text-xs font-semibold rounded-lg px-3 py-1.5 border border-slate-700 focus:outline-none focus:border-indigo-500 text-slate-300">
+    <header>
+        <h1>PROXY PLUG TRADES</h1>
+        <div style="display: flex; align-items: center; gap: 1rem;">
+            <select id="roleView" onchange="toggleRoleView()">
                 <option value="buyer">Buyer View</option>
                 <option value="seller">Seller / Owner View</option>
             </select>
-            <button id="inboxBtn" onclick="toggleInboxModal()" class="hidden bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 text-white font-bold text-xs py-2 px-4 rounded-xl flex items-center gap-2 shadow-lg shadow-indigo-900/30 transition-all border border-indigo-500/20">
-                📥 Inbox <span id="inboxCount" class="bg-rose-500 text-[10px] font-black px-2 py-0.5 rounded-md shadow-inner text-white">0</span>
+            <button id="inboxBtn" onclick="toggleInboxModal()" class="hidden">
+                📥 Inbox <span id="inboxCount" style="background-color: #f43f5e; font-size: 10px; font-weight: 900; padding: 2px 6px; border-radius: 4px; color: #fff;">0</span>
             </button>
         </div>
     </header>
 
-    <!-- Sleek Fading Tips Menu Banner -->
-    <div id="tipsBanner" class="bg-[#0b101d] border-b border-slate-800/60 py-2 text-center text-xs font-medium tracking-wide text-indigo-300/90 min-h-[36px] flex justify-center items-center shadow-inner">
+    <!-- Fading Banner Info -->
+    <div id="tipsBanner">
         <div id="tickerText" class="ticker-fade">Loading system metrics from Proxy Plug node...</div>
     </div>
 
-    <main class="max-w-6xl mx-auto p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
-        
+    <main>
         <!-- Stock Widget -->
-        <div class="glass-panel p-6 rounded-2xl border border-slate-800 shadow-2xl shadow-black/40">
-            <h2 class="text-xs font-bold uppercase tracking-widest mb-4 text-slate-400 flex items-center gap-1.5"><span class="h-1.5 w-1.5 rounded-full bg-indigo-500 animate-pulse"></span> Stock Manifest</h2>
-            <div class="space-y-2.5">
-                <div class="flex justify-between items-center bg-[#11192b]/80 p-3.5 rounded-xl border border-slate-800/50">
-                    <span class="text-sm font-medium text-amber-400/90">(PG) Proxy + Game</span>
-                    <span id="stock-PG" class="font-mono text-lg font-bold text-white">0</span>
+        <div class="glass-panel">
+            <h2 class="panel-title">Stock Manifest</h2>
+            <div>
+                <div class="stock-item">
+                    <span class="stock-label-pg">(PG) Proxy + Game</span>
+                    <span id="stock-PG" class="stock-val">0</span>
                 </div>
-                <div class="flex justify-between items-center bg-[#11192b]/80 p-3.5 rounded-xl border border-slate-800/50">
-                    <span class="text-sm font-medium text-indigo-400/90">(P) Proxy</span>
-                    <span id="stock-P" class="font-mono text-lg font-bold text-white">0</span>
+                <div class="stock-item">
+                    <span class="stock-label-p">(P) Proxy</span>
+                    <span id="stock-P" class="stock-val">0</span>
                 </div>
-                <div class="flex justify-between items-center bg-[#11192b]/80 p-3.5 rounded-xl border border-slate-800/50">
-                    <span class="text-sm font-medium text-emerald-400/90">(G) Games</span>
-                    <span id="stock-G" class="font-mono text-lg font-bold text-white">0</span>
+                <div class="stock-item">
+                    <span class="stock-label-g">(G) Games</span>
+                    <span id="stock-G" class="stock-val">0</span>
                 </div>
             </div>
         </div>
 
-        <!-- SELLER ONLY: Terminal Dashboard Controls -->
-        <div id="sellerDashboard" class="hidden md:col-span-2 glass-panel p-6 rounded-2xl border border-slate-800 shadow-2xl space-y-6">
+        <!-- SELLER POV: Controls -->
+        <div id="sellerDashboard" class="glass-panel col-span-2-md hidden">
             <div>
-                <h2 class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-3">Revenue Log</h2>
-                <div class="bg-gradient-to-b from-[#131d33] to-[#0f172a] border border-slate-700/30 p-5 rounded-xl flex flex-col justify-center">
-                    <p class="text-[10px] uppercase font-bold tracking-wider text-slate-400">Aggregated Earnings</p>
-                    <p class="text-3xl font-black mt-0.5 font-mono text-emerald-400">$<span id="totalEarnings">0.00</span></p>
+                <h2 class="panel-title">Revenue Log</h2>
+                <div class="revenue-card">
+                    <p style="font-size: 10px; text-transform: uppercase; font-weight: 700; color: #64748b; margin: 0;">Aggregated Earnings</p>
+                    <p id="totalEarnings" class="revenue-val">0.00</p>
                 </div>
             </div>
 
             <div>
-                <h3 class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-3">Adjust Stock Quantities</h3>
-                <form id="stockForm" onsubmit="updateStock(event)" class="grid grid-cols-3 gap-3">
-                    <div>
-                        <label class="block text-[10px] uppercase font-bold text-slate-500 mb-1">PG Stock</label>
-                        <input type="number" id="set-PG" class="w-full bg-[#111827] border border-slate-800 rounded-lg p-2 font-mono text-sm focus:border-indigo-500 outline-none text-white">
+                <h3 class="panel-title">Adjust Stock Quantities</h3>
+                <form id="stockForm" onsubmit="updateStock(event)">
+                    <div class="stock-grid">
+                        <div class="stock-input-group">
+                            <label>PG Stock</label>
+                            <input type="number" id="set-PG">
+                        </div>
+                        <div class="stock-input-group">
+                            <label>P Stock</label>
+                            <input type="number" id="set-P">
+                        </div>
+                        <div class="stock-input-group">
+                            <label>G Stock</label>
+                            <input type="number" id="set-G">
+                        </div>
                     </div>
-                    <div>
-                        <label class="block text-[10px] uppercase font-bold text-slate-500 mb-1">P Stock</label>
-                        <input type="number" id="set-P" class="w-full bg-[#111827] border border-slate-800 rounded-lg p-2 font-mono text-sm focus:border-indigo-500 outline-none text-white">
-                    </div>
-                    <div>
-                        <label class="block text-[10px] uppercase font-bold text-slate-500 mb-1">G Stock</label>
-                        <input type="number" id="set-G" class="w-full bg-[#111827] border border-slate-800 rounded-lg p-2 font-mono text-sm focus:border-indigo-500 outline-none text-white">
-                    </div>
-                    <button type="submit" class="col-span-3 mt-1 bg-[#161f33] hover:bg-[#1d2942] border border-slate-700/60 py-2 rounded-lg font-bold text-xs uppercase tracking-wider text-slate-300 transition-all cursor-pointer">Commit Configurations</button>
+                    <button type="submit" style="width: 100%;">Commit Configurations</button>
                 </form>
             </div>
         </div>
 
-        <!-- BUYER ONLY: Place Order View -->
-        <div id="buyerDashboard" class="md:col-span-2 glass-panel p-6 rounded-2xl border border-slate-800 shadow-2xl flex flex-col justify-center items-center text-center py-14">
-            <h2 class="text-2xl font-black text-white mb-2 tracking-wide">Secure Transaction Gate</h2>
-            <p class="text-slate-400 text-xs max-w-sm mb-6 leading-relaxed">Deposit real-life order tokens and pass structural payloads directly into temporary processing nodes.</p>
-            <button onclick="openOrderModal()" class="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-sm tracking-wide px-8 py-3.5 rounded-xl shadow-xl shadow-indigo-950/50 transform hover:-translate-y-0.5 transition-all border border-indigo-400/20 cursor-pointer">
-                🚀 Initiate Order Entry
-            </button>
+        <!-- BUYER POV: Order Button Gate -->
+        <div id="buyerDashboard" class="glass-panel col-span-2-md" style="text-align: center; padding: 3.5rem 1.5rem;">
+            <h2 style="font-size: 1.5rem; font-weight: 900; color: #fff; margin-top: 0; margin-bottom: 0.5rem;">Secure Transaction Gate</h2>
+            <p style="color: #94a3b8; font-size: 0.75rem; max-width: 24rem; margin: 0 auto 1.5rem auto; line-height: 1.6;">Deposit real-life order tokens and pass structural payloads directly into temporary processing nodes.</p>
+            <button onclick="openOrderModal()" class="btn-large">🚀 Initiate Order Entry</button>
         </div>
     </main>
-
-    <!-- BUYER MODAL: Order Form -->
-    <div id="orderModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm flex justify-center items-center p-4 z-50">
-        <div class="bg-[#0c1220] border border-slate-800 max-w-md w-full rounded-2xl p-6 shadow-2xl relative">
-            <h3 class="text-lg font-bold mb-4 text-white tracking-wide">Submit Order Package</h3>
-            <form onsubmit="submitOrder(event)" class="space-y-3.5">
+    <!-- BUYER MODAL: Order Entry -->
+    <div id="orderModal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h3 style="font-size: 1.125rem; font-weight: 700; margin-top: 0; margin-bottom: 1rem; color: #fff;">Submit Order Package</h3>
+            <form onsubmit="submitOrder(event)" style="display: flex; flex-direction: column; gap: 0.875rem;">
                 <div>
-                    <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Real-Life Order Token</label>
-                    <input type="text" id="orderNumber" required class="w-full bg-[#111827] border border-slate-800 rounded-lg p-2.5 text-xs outline-none text-white focus:border-indigo-500">
+                    <label style="display: block; font-size: 10px; font-weight: 700; text-transform: uppercase; color: #94a3b8; margin-bottom: 0.25rem;">Real-Life Order Token</label>
+                    <input type="text" id="orderNumber" required>
                 </div>
                 <div>
-                    <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Your Name</label>
-                    <input type="text" id="buyerName" required class="w-full bg-[#111827] border border-slate-800 rounded-lg p-2.5 text-xs outline-none text-white focus:border-indigo-500">
+                    <label style="display: block; font-size: 10px; font-weight: 700; text-transform: uppercase; color: #94a3b8; margin-bottom: 0.25rem;">Your Name</label>
+                    <input type="text" id="buyerName" required>
                 </div>
                 <div>
-                    <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Amount Paid (\$)</label>
-                    <input type="number" step="0.01" id="amountPaid" required class="w-full bg-[#111827] border border-slate-800 rounded-lg p-2.5 text-xs outline-none text-white focus:border-indigo-500 font-mono">
+                    <label style="display: block; font-size: 10px; font-weight: 700; text-transform: uppercase; color: #94a3b8; margin-bottom: 0.25rem;">Amount Paid ($)</label>
+                    <input type="number" step="0.01" id="amountPaid" required>
                 </div>
                 <div>
-                    <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Trade Category</label>
-                    <select id="tradeType" class="w-full bg-[#111827] border border-slate-800 rounded-lg p-2.5 text-xs outline-none text-slate-300 focus:border-indigo-500">
-                        <option value="PG">(PG) Proxy + Game (\$4.00)</option>
-                        <option value="P">(P) Proxy (\$2.00)</option>
-                        <option value="G">(G) Games (\$1.00)</option>
+                    <label style="display: block; font-size: 10px; font-weight: 700; text-transform: uppercase; color: #94a3b8; margin-bottom: 0.25rem;">Trade Category</label>
+                    <select id="tradeType" style="width: 100%;">
+                        <option value="PG">(PG) Proxy + Game ($4.00)</option>
+                        <option value="P">(P) Proxy ($2.00)</option>
+                        <option value="G">(G) Games ($1.00)</option>
                     </select>
                 </div>
                 <div>
-                    <label class="block text-[10px] uppercase font-bold text-amber-400 mb-1">Secure Delivery Payload (Encrypted local node conversion)</label>
-                    <textarea id="proxyPayload" rows="2" placeholder="Paste sensitive items here. Automatically encrypted before transmission..." class="w-full bg-[#070b14] border border-amber-500/20 rounded-lg p-2.5 text-amber-300 text-[11px] font-mono outline-none focus:border-amber-500/60"></textarea>
+                    <label style="display: block; font-size: 10px; font-weight: 700; text-transform: uppercase; color: #f59e0b; margin-bottom: 0.25rem;">Secure Delivery Payload (Client-Side Encryption)</label>
+                    <textarea id="proxyPayload" rows="2" placeholder="Paste sensitive items here..."></textarea>
                 </div>
-                <div class="flex gap-2.5 mt-5">
-                    <button type="button" onclick="closeOrderModal()" class="w-1/2 bg-[#161f30] hover:bg-[#1f2b42] text-slate-400 font-bold py-2 rounded-lg text-xs uppercase tracking-wider transition-all cursor-pointer">Abort</button>
-                    <button type="submit" class="w-1/2 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 text-white font-bold py-2 rounded-lg text-xs uppercase tracking-wider transition-all cursor-pointer">Dispatch</button>
+                <div style="display: flex; gap: 0.625rem; margin-top: 0.5rem;">
+                    <button type="button" onclick="closeOrderModal()" class="btn-secondary" style="width: 50%;">Abort</button>
+                    <button type="submit" style="width: 50%;">Dispatch</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- SELLER MODAL: Orders Inbox -->
-    <div id="inboxModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm flex justify-center items-center p-4 z-50">
-        <div class="bg-[#0c1220] border border-slate-800 max-w-2xl w-full rounded-2xl p-6 shadow-2xl relative max-h-[80vh] flex flex-col">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-sm font-bold uppercase tracking-widest text-white">Encrypted Crypt Feed</h3>
-                <button onclick="toggleInboxModal()" class="text-slate-500 hover:text-slate-300 font-bold text-xs uppercase tracking-wider cursor-pointer">✕ Dismiss</button>
+    <!-- SELLER MODAL: Orders Inbox Feed -->
+    <div id="inboxModal" class="modal-overlay hidden">
+        <div class="modal-content modal-content-wide" style="display: flex; flex-direction: column; max-height: 80vh;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <h3 style="font-size: 0.875rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #fff; margin: 0;">Encrypted Crypt Feed</h3>
+                <button onclick="toggleInboxModal()" class="btn-secondary" style="font-size: 10px; padding: 4px 8px;">✕ Dismiss</button>
             </div>
-            <div id="orderList" class="space-y-3 overflow-y-auto flex-1 pr-1">
+            <div id="orderList" style="overflow-y: auto; flex-1: 1 1 0%; display: flex; flex-direction: column; gap: 0.75rem;">
                 <!-- Dynamic Content Loads Here -->
             </div>
         </div>
@@ -152,13 +142,12 @@
     <script>
         const SUPABASE_URL = "https://supabase.co";
         const SUPABASE_KEY = "sb_publishable_WaVjFVgb9L1TvZW6uhVoEg_1nfjhkT3";
-        
         const supabase = Supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         const tips = [
-            "⚡ PRICING: (P) Proxy Node: \$2.00",
-            "🎮 PRICING: (G) Game Hub: \$1.00",
-            "🔥 BUNDLE: (PG) Complete Infrastructure Package: \$4.00",
+            "⚡ PRICING: (P) Proxy Node: $2.00",
+            "🎮 PRICING: (G) Game Hub: $1.00",
+            "🔥 BUNDLE: (PG) Complete Infrastructure Package: $4.00",
             "🔒 Security Protocol: Active. Transmitted values undergo client-side encryption via order tokens."
         ];
         let currentTipIndex = 0;
@@ -180,7 +169,7 @@
             document.getElementById('stock-P').innerText = data.stock_p;
             document.getElementById('stock-G').innerText = data.stock_g;
 
-            document.getElementById('totalEarnings').innerText = Number(data.total_earnings).toFixed(2);
+            document.getElementById('totalEarnings').innerText = `$${Number(data.total_earnings).toFixed(2)}`;
             document.getElementById('set-PG').value = data.stock_pg;
             document.getElementById('set-P').value = data.stock_p;
             document.getElementById('set-G').value = data.stock_g;
@@ -194,7 +183,7 @@
             const orderList = document.getElementById('orderList');
             
             if (!orders || orders.length === 0) {
-                orderList.innerHTML = `<p class="text-slate-600 text-center py-8 text-xs font-mono">No encrypted entries detected in system table structure.</p>`;
+                orderList.innerHTML = `<p style="color: #475569; text-align: center; padding: 2rem 0; font-size: 0.75rem; font-family: monospace;">No encrypted entries detected in system table structure.</p>`;
                 return;
             }
 
@@ -203,27 +192,25 @@
                 try {
                     const bytes = CryptoJS.AES.decrypt(order.encrypted_payload, order.order_number);
                     decryptedPayload = bytes.toString(CryptoJS.enc.Utf8) || "Invalid Decryption Key";
-                } catch(e) {
-                    decryptedPayload = "Decryption Key Mismatch";
-                }
+                } catch(e) { decryptedPayload = "Decryption Key Mismatch"; }
 
                 return `
-                <div class="bg-[#121a2b] border border-slate-800 p-4 rounded-xl space-y-3 shadow-inner">
-                    <div class="flex justify-between items-start">
+                <div style="background-color: #121a2b; border: 1px solid #1e293b; padding: 1rem; border-radius: 0.75rem; display: flex; flex-direction: column; gap: 0.75rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                         <div>
-                            <div class="flex items-center gap-2">
-                                <span class="bg-[#1e1b4b] text-indigo-300 font-mono text-[10px] px-2 py-0.5 rounded border border-indigo-800/60 font-bold">TOKEN: ${order.order_number}</span>
-                                <span class="text-xs font-bold text-slate-300">${order.buyer_name}</span>
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <span style="background-color: #1e1b4b; color: #a5b4fc; font-family: monospace; font-size: 10px; padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(99, 102, 241, 0.4); font-weight: bold;">TOKEN: ${order.order_number}</span>
+                                <span style="font-size: 0.75rem; font-weight: bold; color: #cbd5e1;">${order.buyer_name}</span>
                             </div>
-                            <p class="text-[10px] text-slate-500 font-mono mt-1">Staged: ${new Date(order.created_at).toLocaleString()}</p>
+                            <p style="font-size: 10px; color: #475569; font-family: monospace; margin: 4px 0 0 0;">Staged: ${new Date(order.created_at).toLocaleString()}</p>
                         </div>
-                        <div class="text-right">
-                            <p class="text-emerald-400 font-black font-mono text-sm">$${Number(order.amount_paid).toFixed(2)}</p>
-                            <span class="inline-block text-[9px] uppercase tracking-wider bg-slate-800 text-slate-400 px-1.5 py-0.5 rounded font-bold border border-slate-700/50">${order.trade_type}</span>
+                        <div style="text-align: right;">
+                            <p style="color: #34d399; font-weight: 900; font-family: monospace; font-size: 0.875rem; margin: 0; margin-bottom: 2px;">$${Number(order.amount_paid).toFixed(2)}</p>
+                            <span style="display: inline-block; font-size: 9px; text-transform: uppercase; letter-spacing: 0.05em; background-color: #1e293b; color: #94a3b8; padding: 2px 6px; border-radius: 4px; font-weight: bold; border: 1px solid rgba(51, 65, 85, 0.5);">${order.trade_type}</span>
                         </div>
                     </div>
-                    <div class="bg-[#070b14] border border-amber-500/10 p-2.5 rounded font-mono text-[11px] text-amber-400/90 break-all select-all relative group">
-                        <span class="text-slate-600 block text-[9px] uppercase font-sans font-bold tracking-widest mb-1">Decrypted browser memory:</span>
+                    <div style="background-color: #070b14; border: 1px solid rgba(245, 158, 11, 0.1); padding: 0.625rem; border-radius: 0.5rem; font-family: monospace; font-size: 11px; color: rgba(251, 191, 36, 0.9); word-break: break-all; -webkit-user-select: all; user-select: all;">
+                        <span style="color: #475569; display: block; font-size: 9px; font-family: sans-serif; font-weight: bold; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 4px;">Decrypted browser memory:</span>
                         ${decryptedPayload}
                     </div>
                 </div>`;
