@@ -3,14 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Steezys Proxy Trades</title>
-    <!-- REMOVED BROKEN TAILWIND LOGIC - EMBEDDING IMMUTABLE STYLESHEET SNAPSHOT -->
-    <link rel="stylesheet" href="style.css">
-    <script src="https://jsdelivr.net"></script>
-    <script src="https://cloudflare.com"></script>
+    <title>Proxy Plug Trades</title>
+    <style>
+        body { background-color: #090d16; color: #e2e8f0; font-family: system-ui, sans-serif; margin: 0; min-height: 100vh; }
+        header { background: rgba(15, 21, 36, 0.9); border-bottom: 1px solid #1e293b; padding: 1rem 1.5rem; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 20px 40px rgba(0,0,0,0.5); position: sticky; top: 0; z-index: 40; backdrop-filter: blur(8px); }
+        h1 { font-size: 1.25rem; font-weight: 900; letter-spacing: 0.1em; margin: 0; background: linear-gradient(to right, #818cf8, #c084fc, #f472b6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        select, input, textarea { background-color: #111827; border: 1px solid #1e293b; border-radius: 0.5rem; padding: 0.625rem; font-size: 0.75rem; color: #f1f5f9; outline: none; width: 100%; box-sizing: border-box; }
+        select:focus, input:focus, textarea:focus { border-color: #6366f1; }
+        select { width: auto; font-weight: 600; cursor: pointer; }
+        main { max-width: 72rem; margin: 0 auto; padding: 1.5rem; display: grid; grid-template-columns: 1fr; gap: 1.5rem; }
+        @media (min-width: 768px) { main { grid-template-columns: 1fr 2fr; } .col-span-2-md { grid-column: span 2 / span 2; } }
+        .glass-panel { background: rgba(15, 23, 42, 0.65); backdrop-filter: blur(12px); border: 1px solid #1e293b; border-radius: 1rem; padding: 1.5rem; box-shadow: 0 25px 50px rgba(0,0,0,0.4); }
+        .panel-title { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #94a3b8; margin-top: 0; margin-bottom: 1rem; }
+        .stock-item { display: flex; justify-content: space-between; align-items: center; background-color: rgba(17, 25, 43, 0.8); padding: 0.875rem; border-radius: 0.75rem; border: 1px solid rgba(30, 41, 59, 0.5); margin-bottom: 0.625rem; }
+        .stock-label-pg { color: #f59e0b; font-weight: 600; }
+        .stock-label-p { color: #6366f1; font-weight: 600; }
+        .stock-label-g { color: #10b981; font-weight: 600; }
+        .stock-val { font-family: monospace; font-size: 1.125rem; font-weight: 700; color: #fff; }
+        .revenue-card { background: linear-gradient(to bottom, #131d33, #0f172a); border: 1px solid rgba(51, 65, 85, 0.3); padding: 1.25rem; border-radius: 0.75rem; margin-bottom: 1.5rem; }
+        .revenue-val { font-size: 1.875rem; font-weight: 900; font-family: monospace; color: #10b981; margin: 0; }
+        .stock-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; margin-bottom: 0.75rem; }
+        .stock-input-group label { display: block; font-size: 0.625rem; font-weight: 700; text-transform: uppercase; color: #64748b; margin-bottom: 0.25rem; }
+        button { background-image: linear-gradient(to right, #4f46e5, #4338ca); color: #fff; font-weight: 700; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; padding: 0.5rem 1rem; border-radius: 0.75rem; border: 1px solid rgba(99, 102, 241, 0.2); cursor: pointer; transition: all 0.2s; box-shadow: 0 10px 15px rgba(0,0,0,0.3); }
+        button:hover { background-image: linear-gradient(to right, #6366f1, #4f46e5); }
+        .btn-large { background-image: linear-gradient(to right, #4f46e5, #9333ea); font-size: 0.875rem; padding: 0.875rem 2rem; border-radius: 0.75rem; }
+        .btn-large:hover { background-image: linear-gradient(to right, #6366f1, #a855f7); transform: translateY(-2px); }
+        .btn-secondary { background: #161f30; color: #94a3b8; border: 1px solid #334155; }
+        .btn-secondary:hover { background: #1f2b42; color: #f1f5f9; }
+        .modal-overlay { position: fixed; inset: 0; background-color: rgba(0, 0, 0, 0.8); backdrop-filter: blur(4px); display: flex; justify-content: center; align-items: center; padding: 1rem; z-index: 50; }
+        .modal-content { background-color: #0c1220; border: 1px solid #1e293b; max-width: 28rem; width: 100%; border-radius: 1rem; padding: 1.5rem; box-shadow: 0 25px 50px rgba(0,0,0,0.5); }
+        .modal-content-wide { max-width: 42rem; }
+        .hidden { display: none !important; }
+        #tipsBanner { background-color: #0b101d; border-bottom: 1px solid rgba(30, 41, 59, 0.6); padding: 0.5rem; text-align: center; font-size: 0.75rem; font-weight: 500; color: #818cf8; min-height: 36px; display: flex; justify-content: center; align-items: center; }
+        @keyframes fadeInOut { 0%, 100% { opacity: 0; transform: translateY(3px); } 10%, 90% { opacity: 1; transform: translateY(0); } }
+        .ticker-fade { animation: fadeInOut 5s infinite ease-in-out; }
+        textarea { resize: none; font-family: monospace; color: #fcd34d; }
+    </style>
 </head>
 <body>
-
     <!-- Navbar -->
     <header>
         <h1>PROXY PLUG TRADES</h1>
@@ -55,7 +85,7 @@
                 <h2 class="panel-title">Revenue Log</h2>
                 <div class="revenue-card">
                     <p style="font-size: 10px; text-transform: uppercase; font-weight: 700; color: #64748b; margin: 0;">Aggregated Earnings</p>
-                    <p id="totalEarnings" class="revenue-val">0.00</p>
+                    <p id="totalEarnings" class="revenue-val">$0.00</p>
                 </div>
             </div>
 
@@ -115,7 +145,7 @@
                     </select>
                 </div>
                 <div>
-                    <label style="display: block; font-size: 10px; font-weight: 700; text-transform: uppercase; color: #f59e0b; margin-bottom: 0.25rem;">Secure Delivery Payload (Client-Side Encryption)</label>
+                    <label style="display: block; font-size: 10px; font-weight: 700; text-transform: uppercase; color: #f59e0b; margin-bottom: 0.25rem;">Secure Delivery Payload (Local Memory Allocation)</label>
                     <textarea id="proxyPayload" rows="2" placeholder="Paste sensitive items here..."></textarea>
                 </div>
                 <div style="display: flex; gap: 0.625rem; margin-top: 0.5rem;">
@@ -130,24 +160,31 @@
     <div id="inboxModal" class="modal-overlay hidden">
         <div class="modal-content modal-content-wide" style="display: flex; flex-direction: column; max-height: 80vh;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                <h3 style="font-size: 0.875rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #fff; margin: 0;">Encrypted Crypt Feed</h3>
+                <h3 style="font-size: 0.875rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #fff; margin: 0;">System Inbox Feed</h3>
                 <button onclick="toggleInboxModal()" class="btn-secondary" style="font-size: 10px; padding: 4px 8px;">✕ Dismiss</button>
             </div>
-            <div id="orderList" style="overflow-y: auto; flex-1: 1 1 0%; display: flex; flex-direction: column; gap: 0.75rem;">
+            <div id="orderList" style="overflow-y: auto; flex-grow: 1; display: flex; flex-direction: column; gap: 0.75rem;">
                 <!-- Dynamic Content Loads Here -->
             </div>
         </div>
     </div>
     <script>
-        const SUPABASE_URL = "https://supabase.co";
-        const SUPABASE_KEY = "sb_publishable_WaVjFVgb9L1TvZW6uhVoEg_1nfjhkT3";
-        const supabase = Supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        // IMMUTABLE STATIC DATA STORAGE CORE
+        let state = JSON.parse(localStorage.getItem('proxy_state')) || {
+            stock_pg: 10, stock_p: 10, stock_g: 10, total_earnings: 0.00
+        };
+        let orders = JSON.parse(localStorage.getItem('proxy_orders')) || [];
+
+        function saveToDeviceMemory() {
+            localStorage.setItem('proxy_state', JSON.stringify(state));
+            localStorage.setItem('proxy_orders', JSON.stringify(orders));
+        }
 
         const tips = [
             "⚡ PRICING: (P) Proxy Node: \$2.00",
             "🎮 PRICING: (G) Game Hub: \$1.00",
             "🔥 BUNDLE: (PG) Complete Infrastructure Package: \$4.00",
-            "🔒 Security Protocol: Active. Transmitted values undergo client-side encryption via order tokens."
+            "🔒 Security Protocol: Active. Storage commits run directly inside individual local environments."
         ];
         let currentTipIndex = 0;
 
@@ -161,39 +198,26 @@
         setInterval(cycleTips, 5000);
         cycleTips();
 
-        async function updateDashboardData() {
-            const { data, error } = await supabase.from('system_state').select('*').eq('id', 1).single();
-            if (error) return console.error(error);
-            
-            document.getElementById('stock-PG').innerText = data.stock_pg;
-            document.getElementById('stock-P').innerText = data.stock_p;
-            document.getElementById('stock-G').innerText = data.stock_g;
+        function updateDashboardData() {
+            document.getElementById('stock-PG').innerText = state.stock_pg;
+            document.getElementById('stock-P').innerText = state.stock_p;
+            document.getElementById('stock-G').innerText = state.stock_g;
 
-            document.getElementById('totalEarnings').innerText = `$${Number(data.total_earnings).toFixed(2)}`;
-            document.getElementById('set-PG').value = data.stock_pg;
-            document.getElementById('set-P').value = data.stock_p;
-            document.getElementById('set-G').value = data.stock_g;
+            document.getElementById('totalEarnings').innerText = `$${Number(state.total_earnings).toFixed(2)}`;
+            document.getElementById('set-PG').value = state.stock_pg;
+            document.getElementById('set-P').value = state.stock_p;
+            document.getElementById('set-G').value = state.stock_g;
         }
 
-        async function updateInbox() {
-            const { data: orders, error } = await supabase.from('orders').select('*').order('created_at', { ascending: false });
-            if (error) return console.error(error);
-            
+        function updateInbox() {
             document.getElementById('inboxCount').innerText = orders.length;
             const orderList = document.getElementById('orderList');
-            if (!orders || orders.length === 0) {
-                orderList.innerHTML = `<p style="color: #475569; text-align: center; padding: 2rem 0; font-size: 0.75rem; font-family: monospace;">No encrypted entries detected in system table structure.</p>`;
+            
+            if (orders.length === 0) {
+                orderList.innerHTML = `<p style="color: #475569; text-align: center; padding: 2rem 0; font-size: 0.75rem; font-family: monospace;">No transaction entries detected inside device system memory.</p>`;
                 return;
             }
-
-            orderList.innerHTML = orders.map(order => {
-                let decryptedPayload = "Decryption Failure";
-                try {
-                    const bytes = CryptoJS.AES.decrypt(order.encrypted_payload, order.order_number);
-                    decryptedPayload = bytes.toString(CryptoJS.enc.Utf8) || "Invalid Decryption Key";
-                } catch(e) { decryptedPayload = "Decryption Key Mismatch"; }
-
-                return `
+            orderList.innerHTML = orders.map(order => `
                 <div style="background-color: #121a2b; border: 1px solid #1e293b; padding: 1rem; border-radius: 0.75rem; display: flex; flex-direction: column; gap: 0.75rem;">
                     <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                         <div>
@@ -201,7 +225,7 @@
                                 <span style="background-color: #1e1b4b; color: #a5b4fc; font-family: monospace; font-size: 10px; padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(99, 102, 241, 0.4); font-weight: bold;">TOKEN: ${order.order_number}</span>
                                 <span style="font-size: 0.75rem; font-weight: bold; color: #cbd5e1;">${order.buyer_name}</span>
                             </div>
-                            <p style="font-size: 10px; color: #475569; font-family: monospace; margin: 4px 0 0 0;">Staged: ${new Date(order.created_at).toLocaleString()}</p>
+                            <p style="font-size: 10px; color: #475569; font-family: monospace; margin: 4px 0 0 0;">Staged: ${order.date}</p>
                         </div>
                         <div style="text-align: right;">
                             <p style="color: #34d399; font-weight: 900; font-family: monospace; font-size: 0.875rem; margin: 0; margin-bottom: 2px;">$${Number(order.amount_paid).toFixed(2)}</p>
@@ -209,11 +233,10 @@
                         </div>
                     </div>
                     <div style="background-color: #070b14; border: 1px solid rgba(245, 158, 11, 0.1); padding: 0.625rem; border-radius: 0.5rem; font-family: monospace; font-size: 11px; color: rgba(251, 191, 36, 0.9); word-break: break-all; -webkit-user-select: all; user-select: all;">
-                        <span style="color: #475569; display: block; font-size: 9px; font-family: sans-serif; font-weight: bold; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 4px;">Decrypted browser memory:</span>
-                        ${decryptedPayload}
+                        <span style="color: #475569; display: block; font-size: 9px; font-family: sans-serif; font-weight: bold; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 4px;">Volatile data memory:</span>
+                        ${order.proxy_payload}
                     </div>
-                </div>`;
-            }).join('');
+                </div>`).join('');
         }
 
         function toggleRoleView() {
@@ -237,54 +260,47 @@
             }
         }
 
-        async function submitOrder(e) {
+        function submitOrder(e) {
             e.preventDefault();
             const orderNum = document.getElementById('orderNumber').value;
             const amtPaid = parseFloat(document.getElementById('amountPaid').value);
             const type = document.getElementById('tradeType').value;
             const plainPayload = document.getElementById('proxyPayload').value || 'No content provided';
 
-            const cipherText = CryptoJS.AES.encrypt(plainPayload, orderNum).toString();
-
-            const { data: current } = await supabase.from('system_state').select('*').eq('id', 1).single();
             const stockKey = type === 'PG' ? 'stock_pg' : type === 'P' ? 'stock_p' : 'stock_g';
 
-            if (current[stockKey] <= 0) {
+            if (state[stockKey] <= 0) {
                 alert("Selected system component package is currently out of stock!");
                 return;
             }
 
-            const updatedStock = current[stockKey] - 1;
-            const updatedEarnings = Number(current.total_earnings) + amtPaid;
+            state[stockKey] -= 1;
+            state.total_earnings += amtPaid;
 
-            await supabase.from('orders').insert([{
+            orders.unshift({
                 order_number: orderNum,
                 buyer_name: document.getElementById('buyerName').value,
                 amount_paid: amtPaid,
                 trade_type: type,
-                encrypted_payload: cipherText
-            }]);
+                proxy_payload: plainPayload,
+                date: new Date().toLocaleString()
+            });
 
-            await supabase.from('system_state').update({
-                [stockKey]: updatedStock,
-                total_earnings: updatedEarnings
-            }).eq('id', 1);
-
+            saveToDeviceMemory();
             alert('Order package securely processed.');
             closeOrderModal();
             updateDashboardData();
             e.target.reset();
         }
 
-        async function updateStock(e) {
+        function updateStock(e) {
             e.preventDefault();
-            await supabase.from('system_state').update({
-                stock_pg: parseInt(document.getElementById('set-PG').value),
-                stock_p: parseInt(document.getElementById('set-P').value),
-                stock_g: parseInt(document.getElementById('set-G').value)
-            }).eq('id', 1);
+            state.stock_pg = parseInt(document.getElementById('set-PG').value) || 0;
+            state.stock_p = parseInt(document.getElementById('set-P').value) || 0;
+            state.stock_g = parseInt(document.getElementById('set-G').value) || 0;
 
-            alert('Stock system updates securely saved to cloud schema.');
+            saveToDeviceMemory();
+            alert('Stock configurations successfully committed.');
             updateDashboardData();
         }
 
