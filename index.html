@@ -49,7 +49,6 @@
                 </div>
             </div>
         </div>
-
         <!-- SELLER POV: Controls -->
         <div id="sellerDashboard" class="glass-panel col-span-2-md hidden">
             <div>
@@ -89,6 +88,7 @@
             <button onclick="openOrderModal()" class="btn-large">🚀 Initiate Order Entry</button>
         </div>
     </main>
+
     <!-- BUYER MODAL: Order Entry -->
     <div id="orderModal" class="modal-overlay hidden">
         <div class="modal-content">
@@ -138,16 +138,16 @@
             </div>
         </div>
     </div>
-
     <script>
         const SUPABASE_URL = "https://supabase.co";
-        const SUPABASE_KEY = "sb_publishable_WaVjFVgb9L1TvZW6uhVoEg_1nfjhkT3";
+        // PASTE YOUR ACTUAL "anon public" KEY EXTRACTED FROM SUPABASE SETTINGS BELOW
+        const SUPABASE_KEY = "PASTE_YOUR_ANON_PUBLIC_KEY_HERE";
         const supabase = Supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         const tips = [
-            "⚡ PRICING: (P) Proxy Node: $2.00",
-            "🎮 PRICING: (G) Game Hub: $1.00",
-            "🔥 BUNDLE: (PG) Complete Infrastructure Package: $4.00",
+            "⚡ PRICING: (P) Proxy Node: \$2.00",
+            "🎮 PRICING: (G) Game Hub: \$1.00",
+            "🔥 BUNDLE: (PG) Complete Infrastructure Package: \$4.00",
             "🔒 Security Protocol: Active. Transmitted values undergo client-side encryption via order tokens."
         ];
         let currentTipIndex = 0;
@@ -161,6 +161,7 @@
         }
         setInterval(cycleTips, 5000);
         cycleTips();
+
         async function updateDashboardData() {
             const { data, error } = await supabase.from('system_state').select('*').eq('id', 1).single();
             if (error) return console.error(error);
@@ -181,7 +182,6 @@
             
             document.getElementById('inboxCount').innerText = orders.length;
             const orderList = document.getElementById('orderList');
-            
             if (!orders || orders.length === 0) {
                 orderList.innerHTML = `<p style="color: #475569; text-align: center; padding: 2rem 0; font-size: 0.75rem; font-family: monospace;">No encrypted entries detected in system table structure.</p>`;
                 return;
