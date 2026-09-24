@@ -252,19 +252,27 @@
             const pass = document.getElementById('regPass').value.trim();
             
             if(!user || !pass) return alert("Please specify both account profile credentials.");
-            if(user.toLowerCase() === "steezy") return alert("Restricted identifier: Root administrator context profile mapped elsewhere.");
+            
+            // Block buyers from trying to hijacked the owner name signature field
+            if(user.toLowerCase() === "steezy") {
+                alert("Restricted identity username signature: Mapped exclusively to root node administrator.");
+                return;
+            }
 
             const passHash = CryptoJS.SHA256(pass).toString();
 
             if (mode === 'register') {
-                const { data: exist } = await supabase.from('buyers_auth').select('*').eq('username', user);
-                if(exist && exist.length > 0) return alert("Account error: This profile username signature is already occupied.");
+                // FIXED: Use explicit dataset lines filter array mapping to prevent connection drop exceptions
+                const { data: exist, error: chkErr } = await supabase.from('buyers_auth').select('*').eq('username', user);
+                if (chkErr) return alert("Database Connection Error: Clear your Supabase firewalls.");
+                if (exist && exist.length > 0) return alert("Account error: This profile username signature is already occupied.");
                 
-                await supabase.from('buyers_auth').insert([{ username: user, password_hash: passHash }]);
+                const { error: insErr } = await supabase.from('buyers_auth').insert([{ username: user, password_hash: passHash }]);
+                if (insErr) return alert("Registration Failed: Verify your database RLS table policies are turned on.");
                 alert("Profile node created successfully! Logging into trading channel grid now.");
             } else {
-                const { data: profile, error } = await supabase.from('buyers_auth').select('*').eq('username', user).eq('password_hash', passHash).single();
-                if(error || !profile) return alert("Authentication error: Account signature verification failed.");
+                const { data: profile, error: loginErr } = await supabase.from('buyers_auth').select('*').eq('username', user).eq('password_hash', passHash);
+                if (loginErr || !profile || profile.length === 0) return alert("Authentication error: Account signature verification failed.");
             }
 
             localStorage.setItem('proxy_buyer_user', user);
@@ -397,7 +405,7 @@
             syncFeedsSilently();
         }
 
-        function toggleRoleView() {
+        async function toggleRoleView() {
             const selectEl = document.getElementById('roleView');
             const role = selectEl.value;
             const inboxBtn = document.getElementById('inboxBtn');
@@ -413,8 +421,21 @@
                     return;
                 }
 
+                // SECURE OWNER REGISTRATION GATE: Setup a unique master credential locally in browser memory
+                let localPass = localStorage.getItem('proxy_owner_password_token');
+                if (!localPass) {
+                    const setupPass = prompt("No owner credentials found on this device. Please create your master password now:");
+                    if (!setupPass || setupPass.trim() === "") {
+                        alert("Setup Cancelled: Master configuration key mandatory.");
+                        selectEl.value = "buyer";
+                        return;
+                    }
+                    localStorage.setItem('proxy_owner_password_token', setupPass.trim());
+                    localPass = setupPass.trim();
+                }
+
                 const passCheck = prompt("Enter Verification Password Key:");
-                if (passCheck !== "steezy123") {
+                if (passCheck !== localPass) {
                     alert("Verification Failed: Secure administrative token mismatch.");
                     selectEl.value = "buyer";
                     return;
