@@ -225,7 +225,8 @@
 
     <script>
         const SUPABASE_URL = "https://supabase.co";
-        const SUPABASE_KEY = "sb_publishable_WaVjFVgb9L1TvZW6uhVoEg_1nfjhkT3";
+        // ANON PUBLIC TOKEN AUTOMATICALLY GENERATED & PLUGGED BELOW
+        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im91d2ttdmRuaWR5ZHhqanV6bmdjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAxNzc5OTAsImV4cCI6MjEwNTc1Mzk5MH0.RbXhWGEIk0po765sM54niR15XoyAnA3CUoGhXCywqvQ";
         const supabase = Supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         let activeBuyerName = localStorage.getItem('proxy_buyer_user') || "";
@@ -253,26 +254,24 @@
             
             if(!user || !pass) return alert("Please specify both account profile credentials.");
             
-            // Block buyers from trying to hijacked the owner name signature field
             if(user.toLowerCase() === "steezy") {
-                alert("Restricted identity username signature: Mapped exclusively to root node administrator.");
+                alert("Restricted identifier: Mapped exclusively to root node administrator.");
                 return;
             }
 
             const passHash = CryptoJS.SHA256(pass).toString();
 
             if (mode === 'register') {
-                // FIXED: Use explicit dataset lines filter array mapping to prevent connection drop exceptions
                 const { data: exist, error: chkErr } = await supabase.from('buyers_auth').select('*').eq('username', user);
-                if (chkErr) return alert("Database Connection Error: Clear your Supabase firewalls.");
-                if (exist && exist.length > 0) return alert("Account error: This profile username signature is already occupied.");
+                if (chkErr) return alert("Connection Interrupted: Check your anon API key or RLS rules.");
+                if (exist && exist.length > 0) return alert("Account error: This username signature is already occupied.");
                 
                 const { error: insErr } = await supabase.from('buyers_auth').insert([{ username: user, password_hash: passHash }]);
-                if (insErr) return alert("Registration Failed: Verify your database RLS table policies are turned on.");
+                if (insErr) return alert("Registration Blocked: Confirm your RLS policy permissions.");
                 alert("Profile node created successfully! Logging into trading channel grid now.");
             } else {
                 const { data: profile, error: loginErr } = await supabase.from('buyers_auth').select('*').eq('username', user).eq('password_hash', passHash);
-                if (loginErr || !profile || profile.length === 0) return alert("Authentication error: Account signature verification failed.");
+                if (loginErr || !profile || profile.length === 0) return alert("Authentication error: Account verification failed.");
             }
 
             localStorage.setItem('proxy_buyer_user', user);
@@ -421,21 +420,8 @@
                     return;
                 }
 
-                // SECURE OWNER REGISTRATION GATE: Setup a unique master credential locally in browser memory
-                let localPass = localStorage.getItem('proxy_owner_password_token');
-                if (!localPass) {
-                    const setupPass = prompt("No owner credentials found on this device. Please create your master password now:");
-                    if (!setupPass || setupPass.trim() === "") {
-                        alert("Setup Cancelled: Master configuration key mandatory.");
-                        selectEl.value = "buyer";
-                        return;
-                    }
-                    localStorage.setItem('proxy_owner_password_token', setupPass.trim());
-                    localPass = setupPass.trim();
-                }
-
                 const passCheck = prompt("Enter Verification Password Key:");
-                if (passCheck !== localPass) {
+                if (passCheck !== "steezy123") {
                     alert("Verification Failed: Secure administrative token mismatch.");
                     selectEl.value = "buyer";
                     return;
