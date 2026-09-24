@@ -169,11 +169,18 @@
         </div>
     </div>
     <script>
-        // IMMUTABLE STATIC DATA STORAGE CORE
-        let state = JSON.parse(localStorage.getItem('proxy_state')) || {
-            stock_pg: 10, stock_p: 10, stock_g: 10, total_earnings: 0.00
-        };
-        let orders = JSON.parse(localStorage.getItem('proxy_orders')) || [];
+        let state, orders;
+        try {
+            state = JSON.parse(localStorage.getItem('proxy_state'));
+            orders = JSON.parse(localStorage.getItem('proxy_orders'));
+        } catch(e) {
+            state = null; orders = null;
+        }
+
+        if (!state || typeof state.stock_pg === 'undefined') {
+            state = { stock_pg: 10, stock_p: 10, stock_g: 10, total_earnings: 0.00 };
+        }
+        if (!Array.isArray(orders)) { orders = []; }
 
         function saveToDeviceMemory() {
             localStorage.setItem('proxy_state', JSON.stringify(state));
@@ -184,7 +191,7 @@
             "⚡ PRICING: (P) Proxy Node: \$2.00",
             "🎮 PRICING: (G) Game Hub: \$1.00",
             "🔥 BUNDLE: (PG) Complete Infrastructure Package: \$4.00",
-            "🔒 Security Protocol: Active. Storage commits run directly inside individual local environments."
+            "🔒 Security Protocol: Active. Identity verification checks enforced for master node modifications."
         ];
         let currentTipIndex = 0;
 
@@ -207,12 +214,11 @@
             document.getElementById('set-PG').value = state.stock_pg;
             document.getElementById('set-P').value = state.stock_p;
             document.getElementById('set-G').value = state.stock_g;
+            document.getElementById('inboxCount').innerText = orders.length;
         }
 
         function updateInbox() {
-            document.getElementById('inboxCount').innerText = orders.length;
             const orderList = document.getElementById('orderList');
-            
             if (orders.length === 0) {
                 orderList.innerHTML = `<p style="color: #475569; text-align: center; padding: 2rem 0; font-size: 0.75rem; font-family: monospace;">No transaction entries detected inside device system memory.</p>`;
                 return;
@@ -240,13 +246,41 @@
         }
 
         function toggleRoleView() {
-            const role = document.getElementById('roleView').value;
+            const selectEl = document.getElementById('roleView');
+            const role = selectEl.value;
             const inboxBtn = document.getElementById('inboxBtn');
             const sellerDb = document.getElementById('sellerDashboard');
             const buyerDb = document.getElementById('buyerDashboard');
             const tipsBanner = document.getElementById('tipsBanner');
 
             if (role === 'seller') {
+                const userCheck = prompt("Enter Terminal Admin Username:");
+                if (userCheck !== "Steezy") {
+                    alert("Authentication Error: Invalid profile identity context.");
+                    selectEl.value = "buyer";
+                    return;
+                }
+
+                // Check or assign local sandbox password
+                let localPass = localStorage.getItem('proxy_admin_token');
+                if (!localPass) {
+                    const setupPass = prompt("No existing credential hash found. Please set your master admin password now:");
+                    if (!setupPass || setupPass.trim() === "") {
+                        alert("Setup aborted: Active terminal requires a protection token allocation.");
+                        selectEl.value = "buyer";
+                        return;
+                    }
+                    localStorage.setItem('proxy_admin_token', setupPass.trim());
+                    localPass = setupPass.trim();
+                }
+
+                const passCheck = prompt("Enter Verification Password Key:");
+                if (passCheck !== localPass) {
+                    alert("Verification Failed: Secure administrative token mismatch.");
+                    selectEl.value = "buyer";
+                    return;
+                }
+
                 inboxBtn.classList.remove('hidden');
                 sellerDb.classList.remove('hidden');
                 buyerDb.classList.add('hidden');
@@ -262,10 +296,11 @@
 
         function submitOrder(e) {
             e.preventDefault();
-            const orderNum = document.getElementById('orderNumber').value;
-            const amtPaid = parseFloat(document.getElementById('amountPaid').value);
+            const orderNum = document.getElementById('orderNumber').value.trim();
+            const buyerNameInput = document.getElementById('buyerName').value.trim();
+            const amtPaid = parseFloat(document.getElementById('amountPaid').value) || 0;
             const type = document.getElementById('tradeType').value;
-            const plainPayload = document.getElementById('proxyPayload').value || 'No content provided';
+            const plainPayload = document.getElementById('proxyPayload').value.trim() || 'No content provided';
 
             const stockKey = type === 'PG' ? 'stock_pg' : type === 'P' ? 'stock_p' : 'stock_g';
 
@@ -279,7 +314,7 @@
 
             orders.unshift({
                 order_number: orderNum,
-                buyer_name: document.getElementById('buyerName').value,
+                buyer_name: buyerNameInput,
                 amount_paid: amtPaid,
                 trade_type: type,
                 proxy_payload: plainPayload,
@@ -290,6 +325,7 @@
             alert('Order package securely processed.');
             closeOrderModal();
             updateDashboardData();
+            updateInbox(); 
             e.target.reset();
         }
 
@@ -302,6 +338,7 @@
             saveToDeviceMemory();
             alert('Stock configurations successfully committed.');
             updateDashboardData();
+            updateInbox();
         }
 
         function openOrderModal() { document.getElementById('orderModal').classList.remove('hidden'); }
