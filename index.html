@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Proxy Plug Trades</title>
+    <script src="https://jsdelivr.net"></script>
+    <script src="https://cloudflare.com"></script>
     <style>
         body { background-color: #090d16; color: #e2e8f0; font-family: system-ui, sans-serif; margin: 0; min-height: 100vh; }
         header { background: rgba(15, 21, 36, 0.9); border-bottom: 1px solid #1e293b; padding: 1rem 1.5rem; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 20px 40px rgba(0,0,0,0.5); position: sticky; top: 0; z-index: 40; backdrop-filter: blur(8px); }
@@ -45,6 +47,8 @@
     <header>
         <h1>PROXY PLUG TRADES</h1>
         <div style="display: flex; align-items: center; gap: 1rem;">
+            <!-- Simple profile authentication display -->
+            <div id="authBadge" style="font-size: 11px; font-weight: bold; background-color: #1e293b; padding: 4px 10px; border-radius: 6px; color: #94a3b8;">Guest Profile</div>
             <select id="roleView" onchange="toggleRoleView()">
                 <option value="buyer">Buyer View</option>
                 <option value="seller">Seller / Owner View</option>
@@ -55,7 +59,6 @@
         </div>
     </header>
 
-    <!-- Fading Banner Info -->
     <div id="tipsBanner">
         <div id="tickerText" class="ticker-fade">Loading system metrics from Proxy Plug node...</div>
     </div>
@@ -81,11 +84,17 @@
         </div>
         <!-- SELLER POV: Controls -->
         <div id="sellerDashboard" class="glass-panel col-span-2-md hidden">
-            <div>
-                <h2 class="panel-title">Revenue Log</h2>
-                <div class="revenue-card">
-                    <p style="font-size: 10px; text-transform: uppercase; font-weight: 700; color: #64748b; margin: 0;">Aggregated Earnings</p>
-                    <p id="totalEarnings" class="revenue-val">$0.00</p>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+                <div>
+                    <h2 class="panel-title">Revenue Log</h2>
+                    <div class="revenue-card" style="margin:0;">
+                        <p style="font-size: 10px; text-transform: uppercase; font-weight: 700; color: #64748b; margin: 0;">Aggregated Earnings</p>
+                        <p id="totalEarnings" class="revenue-val">$0.00</p>
+                    </div>
+                </div>
+                <div>
+                    <h2 class="panel-title">Operations</h2>
+                    <button onclick="openShipModal('', '')" style="width:100%; height:100%; font-size:13px;" class="btn-large">📦 Ship Order Terminal</button>
                 </div>
             </div>
 
@@ -111,14 +120,27 @@
             </div>
         </div>
 
-        <!-- BUYER POV: Order Button Gate -->
-        <div id="buyerDashboard" class="glass-panel col-span-2-md" style="text-align: center; padding: 3.5rem 1.5rem;">
-            <h2 style="font-size: 1.5rem; font-weight: 900; color: #fff; margin-top: 0; margin-bottom: 0.5rem;">Secure Transaction Gate</h2>
-            <p style="color: #94a3b8; font-size: 0.75rem; max-width: 24rem; margin: 0 auto 1.5rem auto; line-height: 1.6;">Deposit real-life order tokens and pass structural payloads directly into temporary processing nodes.</p>
-            <button onclick="openOrderModal()" class="btn-large">🚀 Initiate Order Entry</button>
+        <!-- BUYER POV: Gateway Panel -->
+        <div id="buyerDashboard" class="glass-panel col-span-2-md" style="text-align: center; padding: 3rem 1.5rem;">
+            <div id="unauthState">
+                <h2 style="font-size: 1.5rem; font-weight: 900; color: #fff; margin-top: 0; margin-bottom: 0.5rem;">Registration Required</h2>
+                <p style="color: #94a3b8; font-size: 0.75rem; max-width: 24rem; margin: 0 auto 1.5rem auto;">You must sign up or enter your confirmation profile details to view your shipments and trade items.</p>
+                <div style="max-width: 18rem; margin: 0 auto; display: flex; flex-direction: column; gap: 0.75rem;">
+                    <input type="text" id="regName" placeholder="Enter Your Unique Name">
+                    <button onclick="handleBuyerRegistration()" style="width: 100%;">Initialize Account Node</button>
+                </div>
+            </div>
+            
+            <div id="authState" class="hidden">
+                <h2 style="font-size: 1.5rem; font-weight: 900; color: #fff; margin-top: 0; margin-bottom: 0.5rem;">Secure Transaction Gate</h2>
+                <p style="color: #94a3b8; font-size: 0.75rem; max-width: 24rem; margin: 0 auto 1.5rem auto;">Staged as: <span id="stagedBuyerName" class="text-indigo-400 font-bold"></span>. Submit real-life verification tracking codes here.</p>
+                <div style="display:flex; justify-content:center; gap:1rem;">
+                    <button onclick="openOrderModal()" class="btn-large">🚀 Place Order Request</button>
+                    <button onclick="toggleBuyerInboxModal()" class="btn-large" style="background-image: linear-gradient(to right, #10b981, #059669);">📥 Open My Deliveries</button>
+                </div>
+            </div>
         </div>
     </main>
-
     <!-- BUYER MODAL: Order Entry -->
     <div id="orderModal" class="modal-overlay hidden">
         <div class="modal-content">
@@ -127,10 +149,6 @@
                 <div>
                     <label style="display: block; font-size: 10px; font-weight: 700; text-transform: uppercase; color: #94a3b8; margin-bottom: 0.25rem;">Real-Life Order Token</label>
                     <input type="text" id="orderNumber" required>
-                </div>
-                <div>
-                    <label style="display: block; font-size: 10px; font-weight: 700; text-transform: uppercase; color: #94a3b8; margin-bottom: 0.25rem;">Your Name</label>
-                    <input type="text" id="buyerName" required>
                 </div>
                 <div>
                     <label style="display: block; font-size: 10px; font-weight: 700; text-transform: uppercase; color: #94a3b8; margin-bottom: 0.25rem;">Amount Paid ($)</label>
@@ -145,8 +163,8 @@
                     </select>
                 </div>
                 <div>
-                    <label style="display: block; font-size: 10px; font-weight: 700; text-transform: uppercase; color: #f59e0b; margin-bottom: 0.25rem;">Secure Delivery Payload (Local Memory Allocation)</label>
-                    <textarea id="proxyPayload" rows="2" placeholder="Paste sensitive items here..."></textarea>
+                    <label style="display: block; font-size: 10px; font-weight: 700; text-transform: uppercase; color: #f59e0b; margin-bottom: 0.25rem;">Secure Delivery Payload (Client-Side Encryption)</label>
+                    <textarea id="proxyPayload" rows="2" placeholder="Paste sensitive tokens or notes here..."></textarea>
                 </div>
                 <div style="display: flex; gap: 0.625rem; margin-top: 0.5rem;">
                     <button type="button" onclick="closeOrderModal()" class="btn-secondary" style="width: 50%;">Abort</button>
@@ -160,41 +178,63 @@
     <div id="inboxModal" class="modal-overlay hidden">
         <div class="modal-content modal-content-wide" style="display: flex; flex-direction: column; max-height: 80vh;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                <h3 style="font-size: 0.875rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #fff; margin: 0;">System Inbox Feed</h3>
+                <h3 style="font-size: 0.875rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #fff; margin: 0;">System Incoming Ledger</h3>
                 <button onclick="toggleInboxModal()" class="btn-secondary" style="font-size: 10px; padding: 4px 8px;">✕ Dismiss</button>
             </div>
             <div id="orderList" style="overflow-y: auto; flex-grow: 1; display: flex; flex-direction: column; gap: 0.75rem;">
-                <!-- Dynamic Content Loads Here -->
+                <!-- Dynamic Items Repaint Here -->
             </div>
         </div>
     </div>
+    <!-- BUYER INBOX MODAL -->
+    <div id="buyerInboxModal" class="modal-overlay hidden">
+        <div class="modal-content modal-content-wide" style="display: flex; flex-direction: column; max-height: 80vh;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <h3 style="font-size: 0.875rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #10b981; margin: 0;">My Shipped Packages Feed</h3>
+                <button onclick="toggleBuyerInboxModal()" class="btn-secondary" style="font-size: 10px; padding: 4px 8px;">✕ Close</button>
+            </div>
+            <div id="buyerOrderList" style="overflow-y: auto; flex-grow: 1; display: flex; flex-direction: column; gap: 0.75rem;">
+                <!-- Shipped cargo repaints here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- SELLER MODAL: Ship Order Terminal Form -->
+    <div id="shipModal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h3 style="font-size: 1.125rem; font-weight: 700; margin-top: 0; margin-bottom: 1rem; color: #fff;">Execute Cargo Shipment</h3>
+            <form onsubmit="submitShipment(event)" style="display: flex; flex-direction: column; gap: 0.875rem;">
+                <div>
+                    <label style="display: block; font-size: 10px; font-weight: 700; text-transform: uppercase; color: #94a3b8; margin-bottom: 0.25rem;">Target Order Token ID</label>
+                    <input type="text" id="shipOrderNum" required placeholder="Enter token ID manually or click via inbox">
+                </div>
+                <div>
+                    <label style="display: block; font-size: 10px; font-weight: 700; text-transform: uppercase; color: #f59e0b; margin-bottom: 0.25rem;">Secure Proxy/Site Payload Note (Encrypted Delivery)</label>
+                    <textarea id="shipPayloadMessage" rows="4" required placeholder="Type the private links, account lines, or credentials you want to securely deliver to this customer..."></textarea>
+                </div>
+                <div style="display: flex; gap: 0.625rem; margin-top: 0.5rem;">
+                    <button type="button" onclick="closeShipModal()" class="btn-secondary" style="width: 50%;">Abort</button>
+                    <button type="submit" style="width: 50%; background-image: linear-gradient(to right, #10b981, #059669);">Deliver Shipped Cargo</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
-        let state, orders;
-        try {
-            state = JSON.parse(localStorage.getItem('proxy_state'));
-            orders = JSON.parse(localStorage.getItem('proxy_orders'));
-        } catch(e) {
-            state = null; orders = null;
-        }
+        // REPLACE WITH THE EXACT STABLE CLIENT GATEWAY KEYS FROM YOUR SUPABASE SCREEN
+        const SUPABASE_URL = "https://supabase.co";
+        const SUPABASE_KEY = "sb_publishable_WaVjFVgb9L1TvZW6uhVoEg_1nfjhkT3";
+        const supabase = Supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        if (!state || typeof state.stock_pg === 'undefined') {
-            state = { stock_pg: 10, stock_p: 10, stock_g: 10, total_earnings: 0.00 };
-        }
-        if (!Array.isArray(orders)) { orders = []; }
-
-        function saveToDeviceMemory() {
-            localStorage.setItem('proxy_state', JSON.stringify(state));
-            localStorage.setItem('proxy_orders', JSON.stringify(orders));
-        }
+        let activeBuyerName = localStorage.getItem('proxy_buyer_user') || "";
 
         const tips = [
-            "⚡ PRICING: (P) Proxy Node: \$2.00",
-            "🎮 PRICING: (G) Game Hub: \$1.00",
-            "🔥 BUNDLE: (PG) Complete Infrastructure Package: \$4.00",
-            "🔒 Security Protocol: Active. Identity verification checks enforced for master node modifications."
+            "⚡ PRICING: (P) Proxy Node: $2.00",
+            "🎮 PRICING: (G) Game Hub: $1.00",
+            "🔥 BUNDLE: (PG) Complete Infrastructure Package: $4.00",
+            "🔒 Sync Engine Active: Global changes update dynamically across client windows."
         ];
         let currentTipIndex = 0;
-
         function cycleTips() {
             const tickerText = document.getElementById('tickerText');
             if(tickerText) {
@@ -205,44 +245,147 @@
         setInterval(cycleTips, 5000);
         cycleTips();
 
-        function updateDashboardData() {
-            document.getElementById('stock-PG').innerText = state.stock_pg;
-            document.getElementById('stock-P').innerText = state.stock_p;
-            document.getElementById('stock-G').innerText = state.stock_g;
-
-            document.getElementById('totalEarnings').innerText = `$${Number(state.total_earnings).toFixed(2)}`;
-            document.getElementById('set-PG').value = state.stock_pg;
-            document.getElementById('set-P').value = state.stock_p;
-            document.getElementById('set-G').value = state.stock_g;
-            document.getElementById('inboxCount').innerText = orders.length;
+        function handleBuyerRegistration() {
+            const nameInput = document.getElementById('regName').value.trim();
+            if (!nameInput) return alert("Please specify a real profile username identity.");
+            localStorage.setItem('proxy_buyer_user', nameInput);
+            activeBuyerName = nameInput;
+            evalAuthState();
+            updateDashboardData();
         }
 
-        function updateInbox() {
-            const orderList = document.getElementById('orderList');
-            if (orders.length === 0) {
-                orderList.innerHTML = `<p style="color: #475569; text-align: center; padding: 2rem 0; font-size: 0.75rem; font-family: monospace;">No transaction entries detected inside device system memory.</p>`;
-                return;
+        function evalAuthState() {
+            const unauth = document.getElementById('unauthState');
+            const auth = document.getElementById('authState');
+            const badge = document.getElementById('authBadge');
+            const nameDisplay = document.getElementById('stagedBuyerName');
+
+            if (activeBuyerName) {
+                unauth.classList.add('hidden');
+                auth.classList.remove('hidden');
+                badge.innerText = `User: ${activeBuyerName}`;
+                badge.style.color = "#818cf8";
+                nameDisplay.innerText = activeBuyerName;
+            } else {
+                unauth.classList.remove('hidden');
+                auth.classList.add('hidden');
+                badge.innerText = "Guest Profile";
+                badge.style.color = "#94a3b8";
             }
-            orderList.innerHTML = orders.map(order => `
-                <div style="background-color: #121a2b; border: 1px solid #1e293b; padding: 1rem; border-radius: 0.75rem; display: flex; flex-direction: column; gap: 0.75rem;">
-                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                        <div>
-                            <div style="display: flex; align-items: center; gap: 0.5rem;">
-                                <span style="background-color: #1e1b4b; color: #a5b4fc; font-family: monospace; font-size: 10px; padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(99, 102, 241, 0.4); font-weight: bold;">TOKEN: ${order.order_number}</span>
-                                <span style="font-size: 0.75rem; font-weight: bold; color: #cbd5e1;">${order.buyer_name}</span>
+        }
+
+        async function updateDashboardData() {
+            const { data, error } = await supabase.from('system_state').select('*').eq('id', 1).single();
+            if (error) return console.error(error);
+            
+            document.getElementById('stock-PG').innerText = data.stock_pg;
+            document.getElementById('stock-P').innerText = data.stock_p;
+            document.getElementById('stock-G').innerText = data.stock_g;
+
+            document.getElementById('totalEarnings').innerText = `$${Number(data.total_earnings).toFixed(2)}`;
+            document.getElementById('set-PG').value = data.stock_pg;
+            document.getElementById('set-P').value = data.stock_p;
+            document.getElementById('set-G').value = data.stock_g;
+
+            // Trigger silent background updates
+            syncFeedsSilently();
+        }
+        async function syncFeedsSilently() {
+            // Real-time synchronization loader engine query
+            const { data: orders, error } = await supabase.from('orders').select('*').order('created_at', { ascending: false });
+            if (error) return;
+
+            // 1. Update Seller Inbox elements
+            const pendingOrders = orders.filter(o => o.status === 'pending');
+            document.getElementById('inboxCount').innerText = pendingOrders.length;
+            
+            const orderList = document.getElementById('orderList');
+            if (pendingOrders.length === 0) {
+                orderList.innerHTML = `<p style="color: #475569; text-align: center; padding: 2rem 0; font-size: 0.75rem; font-family: monospace;">No pending encrypted data lines currently found.</p>`;
+            } else {
+                orderList.innerHTML = pendingOrders.map(order => {
+                    let decryptedPayload = "Securely Encrypted Logs Locked";
+                    return `
+                    <div style="background-color: #121a2b; border: 1px solid #1e293b; padding: 1rem; border-radius: 0.75rem; display: flex; flex-direction: column; gap: 0.75rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                            <div>
+                                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <span style="background-color: #1e1b4b; color: #a5b4fc; font-family: monospace; font-size: 10px; padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(99, 102, 241, 0.4); font-weight: bold;">TOKEN: ${order.order_number}</span>
+                                    <span style="font-size: 0.75rem; font-weight: bold; color: #cbd5e1;">${order.buyer_name}</span>
+                                </div>
+                                <p style="font-size: 10px; color: #475569; font-family: monospace; margin: 4px 0 0 0;">Staged: ${new Date(order.created_at).toLocaleString()}</p>
                             </div>
-                            <p style="font-size: 10px; color: #475569; font-family: monospace; margin: 4px 0 0 0;">Staged: ${order.date}</p>
+                            <div style="text-align: right;">
+                                <p style="color: #34d399; font-weight: 900; font-family: monospace; font-size: 0.875rem; margin: 0; margin-bottom: 2px;">$${Number(order.amount_paid).toFixed(2)}</p>
+                                <button onclick="autoFillShipment('${order.order_number}')" style="font-size:9px; padding:2px 6px; background-image:linear-gradient(to right, #f59e0b, #d97706);">⚡ Fast Ship</button>
+                            </div>
                         </div>
-                        <div style="text-align: right;">
-                            <p style="color: #34d399; font-weight: 900; font-family: monospace; font-size: 0.875rem; margin: 0; margin-bottom: 2px;">$${Number(order.amount_paid).toFixed(2)}</p>
-                            <span style="display: inline-block; font-size: 9px; text-transform: uppercase; letter-spacing: 0.05em; background-color: #1e293b; color: #94a3b8; padding: 2px 6px; border-radius: 4px; font-weight: bold; border: 1px solid rgba(51, 65, 85, 0.5);">${order.trade_type}</span>
-                        </div>
-                    </div>
-                    <div style="background-color: #070b14; border: 1px solid rgba(245, 158, 11, 0.1); padding: 0.625rem; border-radius: 0.5rem; font-family: monospace; font-size: 11px; color: rgba(251, 191, 36, 0.9); word-break: break-all; -webkit-user-select: all; user-select: all;">
-                        <span style="color: #475569; display: block; font-size: 9px; font-family: sans-serif; font-weight: bold; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 4px;">Volatile data memory:</span>
-                        ${order.proxy_payload}
-                    </div>
-                </div>`).join('');
+                    </div>`;
+                }).join('');
+            }
+
+            // 2. Update Buyer inbox dynamically
+            if (activeBuyerName) {
+                const myOrders = orders.filter(o => o.buyer_name.toLowerCase() === activeBuyerName.toLowerCase());
+                const buyerOrderList = document.getElementById('buyerOrderList');
+                if (myOrders.length === 0) {
+                    buyerOrderList.innerHTML = `<p style="color: #475569; text-align: center; padding: 2rem 0; font-size: 0.75rem; font-family: monospace;">No transaction histories linked to this customer account profile token.</p>`;
+                } else {
+                    buyerOrderList.innerHTML = myOrders.map(order => {
+                        let finalDisplayPayload = "⌛ Pending seller authorization payload delivery...";
+                        if (order.status === 'shipped' && order.shipment_message) {
+                            try {
+                                const bytes = CryptoJS.AES.decrypt(order.shipment_message, order.order_number);
+                                finalDisplayPayload = bytes.toString(CryptoJS.enc.Utf8) || "Decryption cipher error.";
+                            } catch(e) { finalDisplayPayload = "Crypt key token mismatch error."; }
+                        }
+                        return `
+                        <div style="background-color: #0f172a; border: 1px solid ${order.status === 'shipped' ? '#10b981' : '#334155'}; padding: 1rem; border-radius: 0.75rem;">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                                <span style="font-family:monospace; font-size:11px; font-weight:bold; color:#818cf8;">TOKEN: ${order.order_number}</span>
+                                <span style="font-size:10px; font-weight:bold; text-transform:uppercase; color:${order.status === 'shipped' ? '#10b981' : '#f59e0b'}">${order.status}</span>
+                            </div>
+                            <div style="background-color: #070b14; padding: 0.625rem; border-radius: 0.5rem; font-family: monospace; font-size: 11px; color: #34d399; word-break: break-all;">
+                                <span style="color: #475569; display: block; font-size: 9px; font-family: sans-serif; font-weight: bold; margin-bottom: 4px;">Delivered Material Box:</span>
+                                ${finalDisplayPayload}
+                            </div>
+                        </div>`;
+                    }).join('');
+                }
+            }
+        }
+
+        // Automatic synchronization pooling script loop (Runs every 3 seconds completely hands-free)
+        setInterval(syncFeedsSilently, 3000);
+
+        function autoFillShipment(tokenCode) {
+            toggleInboxModal();
+            openShipModal(tokenCode, '');
+        }
+
+        function openShipModal(token, msg) {
+            document.getElementById('shipOrderNum').value = token;
+            document.getElementById('shipPayloadMessage').value = msg;
+            document.getElementById('shipModal').classList.remove('hidden');
+        }
+
+        function closeShipModal() { document.getElementById('shipModal').classList.add('hidden'); }
+
+        async function submitShipment(e) {
+            e.preventDefault();
+            const token = document.getElementById('shipOrderNum').value.trim();
+            const rawMsg = document.getElementById('shipPayloadMessage').value.trim();
+
+            // Client side cryptography translation engine
+            const encryptedCargo = CryptoJS.AES.encrypt(rawMsg, token).toString();
+
+            const { data, error } = await supabase.from('orders')
+                .update({ status: 'shipped', shipment_message: encryptedCargo })
+                .eq('order_number', token);
+
+            alert('Cargo inventory dispatched and encrypted inside system cloud cells.');
+            closeShipModal();
+            syncFeedsSilently();
         }
 
         function toggleRoleView() {
@@ -260,22 +403,8 @@
                     selectEl.value = "buyer";
                     return;
                 }
-
-                // Check or assign local sandbox password
-                let localPass = localStorage.getItem('proxy_admin_token');
-                if (!localPass) {
-                    const setupPass = prompt("No existing credential hash found. Please set your master admin password now:");
-                    if (!setupPass || setupPass.trim() === "") {
-                        alert("Setup aborted: Active terminal requires a protection token allocation.");
-                        selectEl.value = "buyer";
-                        return;
-                    }
-                    localStorage.setItem('proxy_admin_token', setupPass.trim());
-                    localPass = setupPass.trim();
-                }
-
                 const passCheck = prompt("Enter Verification Password Key:");
-                if (passCheck !== localPass) {
+                if (passCheck !== "steezy123") {
                     alert("Verification Failed: Secure administrative token mismatch.");
                     selectEl.value = "buyer";
                     return;
@@ -285,7 +414,7 @@
                 sellerDb.classList.remove('hidden');
                 buyerDb.classList.add('hidden');
                 tipsBanner.classList.add('hidden');
-                updateInbox();
+                syncFeedsSilently();
             } else {
                 inboxBtn.classList.add('hidden');
                 sellerDb.classList.add('hidden');
@@ -294,57 +423,64 @@
             }
         }
 
-        function submitOrder(e) {
+        async function submitOrder(e) {
             e.preventDefault();
             const orderNum = document.getElementById('orderNumber').value.trim();
-            const buyerNameInput = document.getElementById('buyerName').value.trim();
             const amtPaid = parseFloat(document.getElementById('amountPaid').value) || 0;
             const type = document.getElementById('tradeType').value;
             const plainPayload = document.getElementById('proxyPayload').value.trim() || 'No content provided';
 
+            const cipherText = CryptoJS.AES.encrypt(plainPayload, orderNum).toString();
+
+            const { data: current } = await supabase.from('system_state').select('*').eq('id', 1).single();
             const stockKey = type === 'PG' ? 'stock_pg' : type === 'P' ? 'stock_p' : 'stock_g';
 
-            if (state[stockKey] <= 0) {
+            if (current[stockKey] <= 0) {
                 alert("Selected system component package is currently out of stock!");
                 return;
             }
 
-            state[stockKey] -= 1;
-            state.total_earnings += amtPaid;
+            const updatedStock = current[stockKey] - 1;
+            const updatedEarnings = Number(current.total_earnings) + amtPaid;
 
-            orders.unshift({
+            await supabase.from('orders').insert([{
                 order_number: orderNum,
-                buyer_name: buyerNameInput,
+                buyer_name: activeBuyerName,
                 amount_paid: amtPaid,
                 trade_type: type,
-                proxy_payload: plainPayload,
-                date: new Date().toLocaleString()
-            });
+                encrypted_payload: cipherText,
+                status: 'pending'
+            }]);
 
-            saveToDeviceMemory();
+            await supabase.from('system_state').update({
+                [stockKey]: updatedStock,
+                total_earnings: updatedEarnings
+            }).eq('id', 1);
+
             alert('Order package securely processed.');
             closeOrderModal();
             updateDashboardData();
-            updateInbox(); 
             e.target.reset();
         }
 
-        function updateStock(e) {
+        async function updateStock(e) {
             e.preventDefault();
-            state.stock_pg = parseInt(document.getElementById('set-PG').value) || 0;
-            state.stock_p = parseInt(document.getElementById('set-P').value) || 0;
-            state.stock_g = parseInt(document.getElementById('set-G').value) || 0;
+            await supabase.from('system_state').update({
+                stock_pg: parseInt(document.getElementById('set-PG').value) || 0,
+                stock_p: parseInt(document.getElementById('set-P').value) || 0,
+                stock_g: parseInt(document.getElementById('set-G').value) || 0
+            }).eq('id', 1);
 
-            saveToDeviceMemory();
-            alert('Stock configurations successfully committed.');
+            alert('Stock system updates securely saved to cloud schema.');
             updateDashboardData();
-            updateInbox();
         }
 
         function openOrderModal() { document.getElementById('orderModal').classList.remove('hidden'); }
         function closeOrderModal() { document.getElementById('orderModal').classList.add('hidden'); }
         function toggleInboxModal() { document.getElementById('inboxModal').classList.toggle('hidden'); }
+        function toggleBuyerInboxModal() { document.getElementById('buyerInboxModal').classList.toggle('hidden'); }
 
+        evalAuthState();
         updateDashboardData();
     </script>
 </body>
