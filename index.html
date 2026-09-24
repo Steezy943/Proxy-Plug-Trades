@@ -47,7 +47,6 @@
     <header>
         <h1>PROXY PLUG TRADES</h1>
         <div style="display: flex; align-items: center; gap: 1rem;">
-            <!-- Simple profile authentication display -->
             <div id="authBadge" style="font-size: 11px; font-weight: bold; background-color: #1e293b; padding: 4px 10px; border-radius: 6px; color: #94a3b8;">Guest Profile</div>
             <select id="roleView" onchange="toggleRoleView()">
                 <option value="buyer">Buyer View</option>
@@ -123,17 +122,21 @@
         <!-- BUYER POV: Gateway Panel -->
         <div id="buyerDashboard" class="glass-panel col-span-2-md" style="text-align: center; padding: 3rem 1.5rem;">
             <div id="unauthState">
-                <h2 style="font-size: 1.5rem; font-weight: 900; color: #fff; margin-top: 0; margin-bottom: 0.5rem;">Registration Required</h2>
-                <p style="color: #94a3b8; font-size: 0.75rem; max-width: 24rem; margin: 0 auto 1.5rem auto;">You must sign up or enter your confirmation profile details to view your shipments and trade items.</p>
+                <h2 style="font-size: 1.5rem; font-weight: 900; color: #fff; margin-top: 0; margin-bottom: 0.5rem;">Secure Client Access Gate</h2>
+                <p style="color: #94a3b8; font-size: 0.75rem; max-width: 24rem; margin: 0 auto 1.5rem auto;">Sign up or log in with your unique credentials to view your shipments and place order tracking packages.</p>
                 <div style="max-width: 18rem; margin: 0 auto; display: flex; flex-direction: column; gap: 0.75rem;">
-                    <input type="text" id="regName" placeholder="Enter Your Unique Name">
-                    <button onclick="handleBuyerRegistration()" style="width: 100%;">Initialize Account Node</button>
+                    <input type="text" id="regName" placeholder="Account Name / Username">
+                    <input type="password" id="regPass" placeholder="Account Security Password" style="background-color: #111827; border: 1px solid #1e293b; border-radius: 0.5rem; padding: 0.625rem; font-size: 0.75rem; color: #f1f5f9;">
+                    <div style="display:flex; gap:0.5rem; margin-top:0.25rem;">
+                        <button onclick="handleBuyerAuth('login')" style="width: 50%; background-image:linear-gradient(to right, #1e293b, #334155);">Sign In</button>
+                        <button onclick="handleBuyerAuth('register')" style="width: 50%;">Register</button>
+                    </div>
                 </div>
             </div>
             
             <div id="authState" class="hidden">
                 <h2 style="font-size: 1.5rem; font-weight: 900; color: #fff; margin-top: 0; margin-bottom: 0.5rem;">Secure Transaction Gate</h2>
-                <p style="color: #94a3b8; font-size: 0.75rem; max-width: 24rem; margin: 0 auto 1.5rem auto;">Staged as: <span id="stagedBuyerName" class="text-indigo-400 font-bold"></span>. Submit real-life verification tracking codes here.</p>
+                <p style="color: #94a3b8; font-size: 0.75rem; max-width: 24rem; margin: 0 auto 1.5rem auto;">Logged in as: <span id="stagedBuyerName" class="text-indigo-400 font-bold"></span>. Submit real-life verification tracking codes here.</p>
                 <div style="display:flex; justify-content:center; gap:1rem;">
                     <button onclick="openOrderModal()" class="btn-large">🚀 Place Order Request</button>
                     <button onclick="toggleBuyerInboxModal()" class="btn-large" style="background-image: linear-gradient(to right, #10b981, #059669);">📥 Open My Deliveries</button>
@@ -221,7 +224,6 @@
     </div>
 
     <script>
-        // REPLACE WITH THE EXACT STABLE CLIENT GATEWAY KEYS FROM YOUR SUPABASE SCREEN
         const SUPABASE_URL = "https://supabase.co";
         const SUPABASE_KEY = "sb_publishable_WaVjFVgb9L1TvZW6uhVoEg_1nfjhkT3";
         const supabase = Supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -245,11 +247,28 @@
         setInterval(cycleTips, 5000);
         cycleTips();
 
-        function handleBuyerRegistration() {
-            const nameInput = document.getElementById('regName').value.trim();
-            if (!nameInput) return alert("Please specify a real profile username identity.");
-            localStorage.setItem('proxy_buyer_user', nameInput);
-            activeBuyerName = nameInput;
+        async function handleBuyerAuth(mode) {
+            const user = document.getElementById('regName').value.trim();
+            const pass = document.getElementById('regPass').value.trim();
+            
+            if(!user || !pass) return alert("Please specify both account profile credentials.");
+            if(user.toLowerCase() === "steezy") return alert("Restricted identifier: Root administrator context profile mapped elsewhere.");
+
+            const passHash = CryptoJS.SHA256(pass).toString();
+
+            if (mode === 'register') {
+                const { data: exist } = await supabase.from('buyers_auth').select('*').eq('username', user);
+                if(exist && exist.length > 0) return alert("Account error: This profile username signature is already occupied.");
+                
+                await supabase.from('buyers_auth').insert([{ username: user, password_hash: passHash }]);
+                alert("Profile node created successfully! Logging into trading channel grid now.");
+            } else {
+                const { data: profile, error } = await supabase.from('buyers_auth').select('*').eq('username', user).eq('password_hash', passHash).single();
+                if(error || !profile) return alert("Authentication error: Account signature verification failed.");
+            }
+
+            localStorage.setItem('proxy_buyer_user', user);
+            activeBuyerName = user;
             evalAuthState();
             updateDashboardData();
         }
@@ -273,7 +292,6 @@
                 badge.style.color = "#94a3b8";
             }
         }
-
         async function updateDashboardData() {
             const { data, error } = await supabase.from('system_state').select('*').eq('id', 1).single();
             if (error) return console.error(error);
@@ -287,15 +305,13 @@
             document.getElementById('set-P').value = data.stock_p;
             document.getElementById('set-G').value = data.stock_g;
 
-            // Trigger silent background updates
             syncFeedsSilently();
         }
+
         async function syncFeedsSilently() {
-            // Real-time synchronization loader engine query
             const { data: orders, error } = await supabase.from('orders').select('*').order('created_at', { ascending: false });
             if (error) return;
 
-            // 1. Update Seller Inbox elements
             const pendingOrders = orders.filter(o => o.status === 'pending');
             document.getElementById('inboxCount').innerText = pendingOrders.length;
             
@@ -303,9 +319,7 @@
             if (pendingOrders.length === 0) {
                 orderList.innerHTML = `<p style="color: #475569; text-align: center; padding: 2rem 0; font-size: 0.75rem; font-family: monospace;">No pending encrypted data lines currently found.</p>`;
             } else {
-                orderList.innerHTML = pendingOrders.map(order => {
-                    let decryptedPayload = "Securely Encrypted Logs Locked";
-                    return `
+                orderList.innerHTML = pendingOrders.map(order => `
                     <div style="background-color: #121a2b; border: 1px solid #1e293b; padding: 1rem; border-radius: 0.75rem; display: flex; flex-direction: column; gap: 0.75rem;">
                         <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                             <div>
@@ -320,11 +334,8 @@
                                 <button onclick="autoFillShipment('${order.order_number}')" style="font-size:9px; padding:2px 6px; background-image:linear-gradient(to right, #f59e0b, #d97706);">⚡ Fast Ship</button>
                             </div>
                         </div>
-                    </div>`;
-                }).join('');
+                    </div>`).join('');
             }
-
-            // 2. Update Buyer inbox dynamically
             if (activeBuyerName) {
                 const myOrders = orders.filter(o => o.buyer_name.toLowerCase() === activeBuyerName.toLowerCase());
                 const buyerOrderList = document.getElementById('buyerOrderList');
@@ -339,6 +350,7 @@
                                 finalDisplayPayload = bytes.toString(CryptoJS.enc.Utf8) || "Decryption cipher error.";
                             } catch(e) { finalDisplayPayload = "Crypt key token mismatch error."; }
                         }
+
                         return `
                         <div style="background-color: #0f172a; border: 1px solid ${order.status === 'shipped' ? '#10b981' : '#334155'}; padding: 1rem; border-radius: 0.75rem;">
                             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
@@ -355,7 +367,6 @@
             }
         }
 
-        // Automatic synchronization pooling script loop (Runs every 3 seconds completely hands-free)
         setInterval(syncFeedsSilently, 3000);
 
         function autoFillShipment(tokenCode) {
@@ -370,16 +381,14 @@
         }
 
         function closeShipModal() { document.getElementById('shipModal').classList.add('hidden'); }
-
         async function submitShipment(e) {
             e.preventDefault();
             const token = document.getElementById('shipOrderNum').value.trim();
             const rawMsg = document.getElementById('shipPayloadMessage').value.trim();
 
-            // Client side cryptography translation engine
             const encryptedCargo = CryptoJS.AES.encrypt(rawMsg, token).toString();
 
-            const { data, error } = await supabase.from('orders')
+            await supabase.from('orders')
                 .update({ status: 'shipped', shipment_message: encryptedCargo })
                 .eq('order_number', token);
 
@@ -403,6 +412,7 @@
                     selectEl.value = "buyer";
                     return;
                 }
+
                 const passCheck = prompt("Enter Verification Password Key:");
                 if (passCheck !== "steezy123") {
                     alert("Verification Failed: Secure administrative token mismatch.");
